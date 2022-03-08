@@ -3,6 +3,8 @@
 ## Introduction
 
 - This is an experimental repository to test BTFGen to reduce the size of BTF information and provide for BTF on the environment without CONFIG_DEBUG_INFO_BTF.
+- When the kernel is updated, we want to build the tool with the minimum BTF automatically.
+![](docs/minimum-btf-bootstrap.jpg)
 
 ## Build
 
