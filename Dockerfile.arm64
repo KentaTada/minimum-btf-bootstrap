@@ -1,4 +1,4 @@
-FROM ubuntu:21.10 as builder
+FROM debian:bullseye as builder
 
 ENV DEBIAN_FRONTEND noninteractive
 ARG btf_file
@@ -13,21 +13,29 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     zlib1g \
     zlib1g-dev \
     libelf-dev \
-    libcap-dev
+    libcap-dev \
+    binutils-dev
 
 ADD src/ /tmp/src
 ADD libbpf/ /tmp/libbpf
 ADD btf_path/ /tmp/btf_path
+ADD bpftool/ /tmp/bpftool
 
-WORKDIR /tmp/src
+# Install the latest bpftool
+WORKDIR /tmp/bpftool/src
 RUN make install
 
-RUN arm64/bpftool gen min_core_btf ../btf_path/${btf_file} ../vmlinux.btf.min .output/capable.bpf.o
+# Install libbpf-based tools
+WORKDIR /tmp/src
+RUN BPFTOOL=/usr/local/sbin/bpftool make install
 
-FROM ubuntu:21.10
+RUN /usr/local/sbin/bpftool gen min_core_btf ../btf_path/${btf_file} ../vmlinux.btf.min .output/capable.bpf.o
+
+FROM gcr.io/distroless/cc-debian11
 
 COPY --from=builder /usr/lib/aarch64-linux-gnu/libelf.so* /usr/lib/aarch64-linux-gnu/
 COPY --from=builder /usr/lib/aarch64-linux-gnu/libz* /usr/lib/aarch64-linux-gnu/
+COPY --from=builder /lib/aarch64-linux-gnu/libz* /lib/aarch64-linux-gnu/
 COPY --from=builder /usr/local/bin/capable /usr/local/bin/capable
 COPY --from=builder /tmp/vmlinux.btf.min /tmp/vmlinux.btf.min
 
