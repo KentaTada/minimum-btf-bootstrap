@@ -19,5 +19,5 @@ $ docker build -t minbtf_x86_64 -f Dockerfile.x86_64 ./ --build-arg btf_file="vm
 
 - Run the container
 ```
-$ sudo docker run --pid="host" --privileged -it -v /sys/kernel/debug:/sys/kernel/debug --rm minbtf_x86_64
+$ sudo docker run --cgroupns="host" --pid="host" --privileged -it -v /sys/kernel/debug:/sys/kernel/debug --rm minbtf_x86_64 -c /sys/fs/cgroup/user.slice/
 ```
